@@ -19,7 +19,7 @@ public class CipherDecryptions {
 		printStructure(difference);
 		
 		//int keyLength = guessLenght(difference);
-		int keyLength = 2;
+		int keyLength = 4;
 		
 		String[] textGroups = parseTextGroupsByKeyIndex(cipherText,keyLength);
 		for(String text:textGroups) {
@@ -40,7 +40,7 @@ public class CipherDecryptions {
 		}
 		
 		//String key = findKeyVigenere();
-		String key = "wi";
+		String key = "KeYs";
 		String plainText = decryptBlockCipher(cipherText,key);
 		System.out.println(plainText);
 	}
@@ -182,8 +182,6 @@ public class CipherDecryptions {
 		for(int i=0;i<cipherText.length();i++) {
 			String character = cipherText.charAt(i)+"";
 			int charKey = keyText.charAt(i)-'a';
-			System.out.println(charKey);
-			System.out.println(character);
 			result += decryptShiftCipher(character,charKey);
 		}
 		return result;
@@ -215,4 +213,64 @@ public class CipherDecryptions {
 		}
 		return result;
 	}
+	
+	//Index of Coincidence
+	public static double indexOfCoincidence() {
+		//frequency analysis
+		Scanner input = new Scanner(System.in);
+		System.out.println("Input text");
+		String text = input.nextLine().toLowerCase();
+		text = parseString(text);
+		double ioc = ICinternal(text);
+		System.out.println("IOC: "+ioc);
+		return ioc;
+	}
+	private static double ICinternal(String text) {
+		String[] textGroup = {text};
+		int[][] frequency = CipherDecryptions.frequencyAnalysis(textGroup);
+		
+		int totalMatched = 0;
+		//mChoosen
+		for(int[] line:frequency) {
+			for(int letter:line) {
+				letter=MathHelper.mChoosen(letter, 2);
+				//total matched pairs
+				totalMatched+=letter;
+			}
+		}
+		//total pairs
+		int total = MathHelper.mChoosen(text.length(), 2);
+		//ioc
+		double ioc = (double)totalMatched/(double)total;
+		return ioc;
+	}
+	
+	public static int friedmanRefinement() {
+		Scanner input = new Scanner(System.in);
+		System.out.println("Input text");
+		String text = input.nextLine().toLowerCase();
+		text = parseString(text);
+		double ICmax = 0;
+		int blockLength = 0;
+		for(int i=1;i<15;i++) {
+			String[] textGroups = parseTextGroupsByKeyIndex(text, i);
+			double ICsum = 0;
+			for(String textGroup:textGroups) {
+				ICsum += ICinternal(textGroup);
+//				if(i==8) {
+//					System.out.println(textGroup);
+//				}
+			}
+			double ICavg = ICsum/textGroups.length;
+			if(ICavg>ICmax) {
+				ICmax=ICavg;
+				blockLength=i;
+			}
+			System.out.println(ICavg);
+		}
+		System.out.println("Largest IC is: "+ICmax);
+		System.out.println("The block length is likely to be: "+blockLength);
+		return blockLength;
+	}
+	
 }
